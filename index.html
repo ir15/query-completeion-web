@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>jQuery UI Autocomplete - Default functionality</title>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+
+	<style>
+		.top-margin{ margin-top:50px }
+	</style>
+
+
+  <script>
+  $(function() {
+   
+   $( "#auto" ).autocomplete({
+  source: function( request, response ) {
+    $.ajax({
+      url: "http://localhost:8983/solr/techproducts/suggest?suggest=true&suggest.build=true&suggest.dictionary=mySuggester",
+      'dataType': 'jsonp',
+  		'jsonp': 'json.wrf',
+      data: {
+        q: request.term,
+        wt: "json",
+
+      },
+      success: function( data ) {
+
+
+        response(
+          $.map(data.suggest.mySuggester[request.term].suggestions, function(item) {
+            return {
+              label: item.term,
+              value: item.term
+            }
+          })
+        );
+      }
+    });
+  },
+  minLength: 2,
+  select: function( event, ui ) {
+
+  }
+});
+    });
+  </script>
+</head>
+<body>
+
+
+	<div class="container-fluid top-margin">
+		<div class="row">
+			<div class="col-md-3"></div>
+			<div class="col-md-6 text-center">
+				<h3>IR15 Group 9 Autocomplete+</h3>
+				<div class="ui-widget top-margin">
+				  <input class="form-control" id="auto" placeholder="Please type a query...">
+				</div>
+			</div>
+			<div class="col-md-3"></div>
+		</div>
+	</div>
+
+
+
+ 
+ 
+</body>
+</html>
