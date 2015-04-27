@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>jQuery UI Autocomplete - Default functionality</title>
+  <title>Better query completeion</title>
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 
@@ -15,62 +15,149 @@
 		.top-margin{ margin-top:50px }
 	</style>
 
-
-  <script>
-  $(function() {
-   
-   $( "#auto" ).autocomplete({
-  source: function( request, response ) {
-    $.ajax({
-      url: "http://localhost:8983/solr/techproducts/suggest?suggest=true&suggest.build=true&suggest.dictionary=mySuggester",
-      'dataType': 'jsonp',
-  		'jsonp': 'json.wrf',
-      data: {
-        q: request.term,
-        wt: "json",
-
-      },
-      success: function( data ) {
-
-
-        response(
-          $.map(data.suggest.mySuggester[request.term].suggestions, function(item) {
-            return {
-              label: item.term,
-              value: item.term
-            }
-          })
-        );
-      }
-    });
-  },
-  minLength: 2,
-  select: function( event, ui ) {
-
-  }
-});
-    });
-  </script>
 </head>
 <body>
-
-
 	<div class="container-fluid top-margin">
 		<div class="row">
 			<div class="col-md-3"></div>
 			<div class="col-md-6 text-center">
-				<h3>IR15 Group 9 Autocomplete+</h3>
+				<h3>IR15 Group 9 Better query completion</h3>
 				<div class="ui-widget top-margin">
 				  <input class="form-control" id="auto" placeholder="Please type a query...">
 				</div>
 			</div>
 			<div class="col-md-3"></div>
 		</div>
+
+		<div class="row top-margin">
+			<div class="col-md-3"></div>
+			<div class="col-md-6" >
+				<h4>Results:</h4>
+				<div  id = "results">
+
+				</div>
+			</div>
+			<div class="col-md-3"></div>
+		</div>
 	</div>
-
-
-
- 
- 
 </body>
+
+<script type="text/javascript">
+	var solr_ip = "130.229.181.168";
+	//var solr_ip = "localhost"
+
+	var suggester = false;
+
+
+  $(function() {
+
+		if(suggester){
+			solr_url = "http://"+ solr_ip +":8983/solr/techproducts/suggest?suggest=true&suggest.build=true&suggest.dictionary=mySuggester";
+		}else{
+			solr_url = "http://"+ solr_ip +":8983/solr/Test/qc?"
+      }
+
+      $("#auto").autocomplete({
+          source: function(request, response) {
+              $.ajax({
+                  url: solr_url,
+                  'dataType': 'jsonp',
+                  'jsonp': 'json.wrf',
+                  data: {
+                      q: request.term,
+                      wt: "json",
+
+                  },
+                  success: function(data) {
+							 var return_data;
+                      if(suggester){
+                         return_data = data.suggest.mySuggester[request.term].suggestions;
+                      }else{
+                         return_data = data.auto_complete;
+                      }
+
+                      response(
+                          $.map(return_data, function(item) {
+                              return {
+                                  label: item.term,
+                                  value: item.term
+                              }
+                          })
+                      );
+                  },
+
+              });
+          },
+          minLength: 2,
+          select: function(event, ui) {
+					//put text in field
+					var str = ui.item.value;
+					$(this).val(str);
+
+
+					//set caret position depending on result selected
+					//for instance if str is containing "()" put caret between parathesis
+					var pos = 0;
+					
+					if(str.indexOf(":()") !=-1){
+						pos = str.indexOf(":()")+2;
+					}else if(str.indexOf("[ TO") != -1 ){
+						pos = str.indexOf("[ TO")+1;
+					}else if(str.indexOf("TO ]") != -1 ){
+						pos = str.indexOf("TO ]")+2;
+					}else{
+						var pos = str.length;
+					}
+
+					//put the cursor at a nice place
+               $(this)[0].setSelectionRange(pos, pos);
+			      
+               return false;
+
+          }
+      });
+  });
+
+
+
+
+//searching module
+
+$('#auto').keypress(function(e){
+  if (e.keyCode == 13 && !e.shiftKey) {
+    e.preventDefault();
+
+
+    jQuery.ajax({
+      url: "http://"+solr_ip+":8983/solr/Test/select",
+		'dataType': 'jsonp',
+      'jsonp': 'json.wrf',
+       data: {
+          q: $(this).val(),
+          wt: "json",
+       },
+      success:  function(data){
+			$('#results').html("");
+
+			var append_str ="";
+			$.each(data.response.docs, function() {
+			append_str = append_str+'<div class="alert alert-success"><ul class="list-unstyled">';
+			
+			  $.each(this, function(k, v) {
+					if(v.length>100){
+				      append_str = append_str+"<li><strong>"+k+" :</strong> " + (""+v).substring(0, 100) +"...</li>";
+					}else{
+						 append_str = append_str+"<li><strong>"+k+" :</strong> " +v+"</li>";
+					}
+			  });
+				append_str = append_str+'</ul></div>';
+			});
+			$('#results').html(append_str);
+		},
+    });
+  }
+
+});
+</script>
+
 </html>
