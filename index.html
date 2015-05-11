@@ -6,9 +6,9 @@
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 
-  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-  <script src="//code.jquery.com/jquery-1.10.2.js"></script>
-  <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 
 
 	<style>
@@ -43,20 +43,15 @@
 </body>
 
 <script type="text/javascript">
-	var solr_ip = "130.229.161.105";
+	var solr_ip = "130.229.138.135";
 	//var solr_ip = "localhost"
-
 	var suggester = false;
-
-
   $(function() {
-
 		if(suggester){
 			solr_url = "http://"+ solr_ip +":8983/solr/techproducts/suggest?suggest=true&suggest.build=true&suggest.dictionary=mySuggester";
 		}else{
 			solr_url = "http://"+ solr_ip +":8983/solr/Test/qc?"
       }
-
       $("#auto").autocomplete({
           source: function(request, response) {
               $.ajax({
@@ -66,7 +61,6 @@
                   data: {
                       q: request.term,
                       wt: "json",
-
                   },
                   success: function(data) {
 							 var return_data;
@@ -75,7 +69,6 @@
                       }else{
                          return_data = data.auto_complete;
                       }
-
                       response(
                           $.map(return_data, function(item) {
                               return {
@@ -85,17 +78,13 @@
                           })
                       );
                   },
-
               });
           },
           minLength: 0,
           select: function(event, ui) {
 					//put text in field
 					var str = ui.item.value;
-
 					$(this).val(str);
-
-
 					//set caret position depending on result selected
 					//for instance if str is containing "()" put caret between parathesis
 					var pos = 0;
@@ -109,24 +98,17 @@
 					}else{
 						var pos = str.length;
 					}
-
 					//put the cursor at a nice place
                $(this)[0].setSelectionRange(pos, pos);
 			      
                return false;
-
           }
       });
   });
-
-
 //searching module
-
 $('#auto').keypress(function(e){
   if (e.keyCode == 13 && !e.shiftKey) {
     e.preventDefault();
-
-
     jQuery.ajax({
       url: "http://"+solr_ip+":8983/solr/Test/select",
 		'dataType': 'jsonp',
@@ -140,7 +122,6 @@ $('#auto').keypress(function(e){
 			$('#resultinfo').html('Query: "'+data.responseHeader.params.q + '" Number of results: '+ data.response.numFound);
 			
 			$('#results').html(""); 
-
 			var append_str ="";
 			$.each(data.response.docs, function() {
 			append_str = append_str+'<div class="alert alert-success"><ul class="list-unstyled">';
@@ -158,14 +139,9 @@ $('#auto').keypress(function(e){
 		},
     });
   }
-
 });
-
 //send keydown on document load
 $('#auto').on('focus', function() { $(this).keydown(); });
-
-
-
 </script>
 
 </html>
